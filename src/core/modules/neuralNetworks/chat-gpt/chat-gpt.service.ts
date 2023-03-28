@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Configuration, OpenAIApi } from "openai";
-import { OPENAI_API_KEY } from "./constants/token";
+import { OPENAI_API_KEY } from "../../../models/constants/tokens";
 
 @Injectable()
 export class ChatGptService {

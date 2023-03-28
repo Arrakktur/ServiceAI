@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from "@nestjs/common";
 import { ChatGptService } from "../../../neuralNetworks/chat-gpt/chat-gpt.service";
-import { TOKEN_TELEGRAM } from "../constants/tokens";
+import { TOKEN_TELEGRAM } from "../../../../models/constants/tokens";
 
 @Injectable()
 export class TelegramService implements OnModuleInit {

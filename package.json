@@ -27,6 +27,7 @@
     "@nestjs/platform-express": "^9.0.0",
     "discord-nestjs": "^1.2.1",
     "discord.js": "^14.8.0",
+    "dotenv": "^16.0.3",
     "necord": "^5.5.2",
     "node-telegram-bot-api": "^0.61.0",
     "openai": "^3.2.1",

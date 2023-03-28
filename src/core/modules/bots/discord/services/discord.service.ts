@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import Discord, { IntentsBitField } from "discord.js";
-import { DISCORD_BOT_TOKEN } from "../constants/tokens";
 import { ChatGptService } from "../../../neuralNetworks/chat-gpt/chat-gpt.service";
+import { DISCORD_BOT_TOKEN } from "../../../../models/constants/tokens";
 
 @Injectable()
 export class DiscordService {
