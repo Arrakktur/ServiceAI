@@ -19,7 +19,7 @@ export class TelegramService implements OnModuleInit {
     bot.on("message", async (msg) => {
       bot.sendMessage(
         msg.from.id,
-        await this.chatGPTService.chat(msg.text.toString())
+        await this.chatGPTService.chat(msg.text.toString(), msg.from.username)
       );
     });
   }
