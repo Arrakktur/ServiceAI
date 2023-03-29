@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum, Configuration, OpenAIApi } from "openai";
 import { OPENAI_API_KEY } from "../../../models/constants/tokens";
+import { response } from "express";
 
 @Injectable()
 export class ChatGptService {
@@ -18,16 +19,20 @@ export class ChatGptService {
   }
 
   async chat(message: string, name: string = "default"): Promise<string> {
-    this.updateContext({ "role": ChatCompletionRequestMessageRoleEnum.User, "content": message, "name": name });
-    const params = {
-      model: "gpt-3.5-turbo",
-      messages: this._context,
-      temperature: 0.5
+    try {
+      this.updateContext({ "role": ChatCompletionRequestMessageRoleEnum.User, "content": message, "name": name });
+      const params = {
+        model: "gpt-3.5-turbo",
+        messages: this._context,
+        temperature: 0.5
+      };
+      const completion = await this.openai.createChatCompletion(params);
+      const response = completion.data.choices[0].message.content;
+      this.updateContext({ "role": ChatCompletionRequestMessageRoleEnum.Assistant, "content": response, "name": name });
+      return response;
+    } catch (error) {
+      return "Error: " + error.response.statusText;
     }
-    const completion = await this.openai.createChatCompletion(params);
-    const response = completion.data.choices[0].message.content;
-    this.updateContext({ "role": ChatCompletionRequestMessageRoleEnum.Assistant, "content": response, "name": name });
-    return response;
   }
 
   private updateContext(object: ChatCompletionRequestMessage): void {
@@ -50,7 +55,7 @@ export class ChatGptService {
 
   set systemRole(value: string) {
     this._systemRole = value;
-    this.updateContext({role: ChatCompletionRequestMessageRoleEnum.System, content: value, name: 'default'})
+    this.updateContext({ role: ChatCompletionRequestMessageRoleEnum.System, content: value, name: "default" });
   }
 
   get systemRole(): string {
@@ -60,9 +65,9 @@ export class ChatGptService {
   get context(): string {
     let result = "";
     this._context.forEach((message: ChatCompletionRequestMessage) => {
-      result += `${message.role === ChatCompletionRequestMessageRoleEnum.User ? "User: ": ""}`;
-      result += `${message.role === ChatCompletionRequestMessageRoleEnum.Assistant ? "Chat: ": ""}`;
-      result += `${message.role === ChatCompletionRequestMessageRoleEnum.System ? "System: ": ""}`;
+      result += `${message.role === ChatCompletionRequestMessageRoleEnum.User ? "User: " : ""}`;
+      result += `${message.role === ChatCompletionRequestMessageRoleEnum.Assistant ? "Chat: " : ""}`;
+      result += `${message.role === ChatCompletionRequestMessageRoleEnum.System ? "System: " : ""}`;
       result += `${message.content}\n`;
     });
     return result;
@@ -77,8 +82,12 @@ export class ChatGptService {
   }
 
   clearContext(): void {
-    if (Boolean(this._systemRole.length)){
-       this._context = [{ role: ChatCompletionRequestMessageRoleEnum.System, content: this._systemRole, name: 'default' }];
+    if (Boolean(this._systemRole.length)) {
+      this._context = [{
+        role: ChatCompletionRequestMessageRoleEnum.System,
+        content: this._systemRole,
+        name: "default"
+      }];
     } else {
       this._context = [];
     }

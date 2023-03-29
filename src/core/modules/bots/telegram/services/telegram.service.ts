@@ -17,10 +17,14 @@ export class TelegramService implements OnModuleInit {
     const bot = new TelegramBot(TOKEN_TELEGRAM, { polling: true });
 
     bot.on("message", async (msg) => {
-      bot.sendMessage(
-        msg.from.id,
-        await this.chatGPTService.chat(msg.text.toString(), msg.from.username)
-      );
+      try {
+        bot.sendMessage(
+          msg.from.id,
+          await this.chatGPTService.chat(msg.text.toString())
+        );
+      } catch (error) {
+        // console.log('error', error);
+      }
     });
   }
 }
