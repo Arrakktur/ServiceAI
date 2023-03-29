@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import Discord, { IntentsBitField } from "discord.js";
+import Discord, { IntentsBitField, Message } from "discord.js";
 import { ChatGptService } from "../../../neuralNetworks/chat-gpt/chat-gpt.service";
 import { DISCORD_BOT_TOKEN } from "../../../../models/constants/tokens";
 
@@ -7,7 +7,7 @@ import { DISCORD_BOT_TOKEN } from "../../../../models/constants/tokens";
 export class DiscordService {
   private readonly allowChannel = ['1089990266305396946', '1080025217113522207', '1080219185507995669']
   constructor(private chatGptService: ChatGptService) {
-    this.initialize();
+    const init = this.initialize();
   }
 
   async initialize(): Promise<void> {
@@ -20,7 +20,7 @@ export class DiscordService {
         IntentsBitField.Flags.MessageContent,
       ]});
 
-    client.on("messageCreate", async (message) => {
+    client.on("messageCreate", async (message: Message<boolean>) => {
       try {
         if (!this.allowChannel.includes(message.channelId)) return;
         if (message.author.bot) return;
@@ -28,44 +28,38 @@ export class DiscordService {
 
         if (command === "ping") {
           const timeTaken = Date.now() - message.createdTimestamp;
-          message.reply(`{system} ping: ${timeTaken}ms.`);
-          return;
+          return message.reply(`{system} ping: ${timeTaken}ms.`);
         }
 
         if (command === "help") {
-          message.reply('{system} Список доступных команд:\n' +
+          return message.reply('{system} Список доступных команд:\n' +
             'help - список команд\n' +
             'getContext - получить текущий контекст\n' +
             'clearContext - удалить текущий контекст' +
             '\n\n' +
             'Системные сообщения не относящиеся к сообщениям бота помечаются {system} в начале сообщения')
-          return;
         }
 
         if (command === "getContext") {
           if (this.chatGptService.contextLength) {
-            message.reply(`{system} Контекст бота (${this.chatGptService.contextLength} сообщений)\n` + this.chatGptService.context);
-          } else {
-            message.reply(`{system} Контекст пуст`)
+            return message.reply(`{system} Контекст бота (${this.chatGptService.contextLength} сообщений)\n` + this.chatGptService.context);
           }
-          return;
+            return message.reply(`{system} Контекст пуст`)
         }
 
         if (command === 'clearContext') {
           this.chatGptService.clearContext();
-          message.reply('{system}: Контекст очищен')
-          return;
+          return message.reply('{system}: Контекст очищен')
         }
 
         // ответ gpt
         const answer = await this.chatGptService.chat(command);
-        message.reply(answer);
+        return message.reply(answer);
       } catch (error) {
-        message.reply(`{system} Ошибка выполнения\n${error}`);
+        return message.reply(`{system} Ошибка выполнения\n${error}`);
       }
     })
 
-    client.login(DISCORD_BOT_TOKEN);
-    console.log('init bot');
+    await client.login(DISCORD_BOT_TOKEN);
   }
 }
