@@ -6,7 +6,7 @@ import { OPENAI_API_KEY } from "../../../models/constants/tokens";
 export class ChatGptService {
   private readonly configuration;
   private openai: OpenAIApi;
-  private context = [];
+  private _context = [];
 
   constructor() {
     this.configuration = new Configuration({
@@ -19,7 +19,7 @@ export class ChatGptService {
     this.updateContext({ "role": "user", "content": message });
     const completion = await this.openai.createChatCompletion({
       model: "gpt-3.5-turbo",
-      messages: this.context,
+      messages: this._context,
       temperature: 0.5
     });
     const response = completion.data.choices[0].message.content;
@@ -27,10 +27,28 @@ export class ChatGptService {
     return response;
   }
 
-  updateContext(object: { "role": string, "content": string }) {
-    this.context.push(object);
-    if (this.context.length > 10) {
-      this.context.splice(0, 1);
+  private updateContext(object: { "role": string, "content": string }): void {
+    this._context.push(object);
+    if (this._context.length > 10) {
+      this._context.splice(0, 1);
     }
+  }
+
+  get context(): string {
+    let result = '';
+    this._context.forEach((message) => {
+      result += `${message.role === 'user' ? 'User: ' : ''}`
+      result += `${message.role === 'assistant' ? 'Chat: ' : ''}`
+      result += `${message.content}\n`;
+    })
+    return result;
+  }
+
+  get contextLength(): number {
+    return this._context.length;
+  }
+
+  clearContext(): void {
+    this._context = [];
   }
 }
