@@ -24,9 +24,7 @@ export class ChatGptService {
       messages: this._context,
       temperature: 0.5
     }
-    console.log(params);
     const completion = await this.openai.createChatCompletion(params);
-    console.log(completion);
     const response = completion.data.choices[0].message.content;
     this.updateContext({ "role": ChatCompletionRequestMessageRoleEnum.Assistant, "content": response, "name": name });
     return response;
